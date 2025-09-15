@@ -1,0 +1,60 @@
+[Unit]
+Description=Enable SR-IOV and detach guest VFs from host
+Requires=network.target
+After=network.target
+Before=pve-firewall.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Ports to use, duplicate lines in the entire script accordingly!
+Environment="PORT0=enp4s0f0np0"
+Environment="PORT1=enp4s0f1np1"
+# [Vendor:Device], find using lspci -vv -nn [vendor]:*
+# 8086:10ed for X520, 8086:154c for X710
+Environment="DEVID=8086:154c"
+# Virtual Functions count to create (VFA)
+# VFC is just VFA-1
+Environment="VFA=8"
+Environment="VFC=7"
+
+# PCIe location (optional if you turn off the unbind scripts!)
+# Please find out what PCI address the VFs get when first running the script, then modify this and uncomment Detach Scripts accordingly
+# Environment="P0ADDR=0000:05:10"
+# Environment="P1ADDR=0000:05:11"
+# Create NIC VFs
+ExecStart=/usr/bin/bash -c 'echo "$VFA" > /sys/class/net/$PORT0/device/sriov_numvfs'
+ExecStart=/usr/bin/bash -c 'echo "$VFA" > /sys/class/net/$PORT1/device/sriov_numvfs'
+# Set static MACs for VFs
+ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT0" vf "$i" mac 02:aa:bb:cc:d1:e$i; done'
+ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT1" vf "$i" mac 02:aa:bb:cc:d2:e$i; done'
+# Set Trust Mode
+ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT0" vf "$i" trust on; done'
+ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT1" vf "$i" trust on; done'
+# Detach VFs from host
+#ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do echo 0000:05:10.$i > /sys/bus/pci/devices/$P0ADDR.$i/driver/unbind; done'
+#ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do echo 0000:05:11.$i > /sys/bus/pci/devices/$P1ADDR.$i/driver/unbind; done'
+# List new VFs
+ExecStart=/usr/bin/lspci -D -d $DEVID
+# Destroy VFs
+ExecStop=/usr/bin/bash -c 'echo 0 > /sys/class/net/$PORT0/device/sriov_numvfs'
+ExecStop=/usr/bin/bash -c 'echo 0 > /sys/class/net/$PORT1/device/sriov_numvfs'
+
+# Reload NIC VFs
+# Create NIC VFs
+ExecReload=/usr/bin/bash -c 'echo "$VFA" > /sys/class/net/$PORT0/device/sriov_numvfs'
+ExecReload=/usr/bin/bash -c 'echo "$VFA" > /sys/class/net/$PORT1/device/sriov_numvfs'
+# Set static MACs for VFs
+ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT0" vf "$i" mac c2:32:56:8f:0f:e$i; done'
+ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT1" vf "$i" mac c2:32:56:8f:1f:e$i; done'
+# Set Trust Mode
+ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT0" vf "$i" trust on; done'
+ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT1" vf "$i" trust on; done'
+# Detach VFs from host
+#ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do echo 0000:05:10.$i > /sys/bus/pci/devices/$P0ADDR.$i/driver/unbind; done'
+#ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do echo 0000:05:11.$i > /sys/bus/pci/devices/$P1ADDR.$i/driver/unbind; done'
+# List new VFs
+ExecReload=/usr/bin/lspci -D -d $DEVID
+
+[Install]
+WantedBy=multi-user.target
