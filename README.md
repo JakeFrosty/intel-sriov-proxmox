@@ -11,7 +11,7 @@
 - Spawn VFs on boot using `/sys/class/net/{devicename}/device/sriov_numvfs`
 - Set static MAC addresses for each VFs
 - Set trust mode on all VFs
-- (Optional) Detach VFs from the host
+- (Optional) Detach VFs from the host, I recommend turning this feature on when possible in Proxmox to avoid cluttering your /etc/network/interfaces with VF devices
 - Destroy VFs on stop by setting `/sys/class/net/{devicename}/device/sriov_numvfs` to 0
 - Start the script  `require` and `after` `network.target` and before `pve-firewall.service`
 
