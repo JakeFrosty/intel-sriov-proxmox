@@ -17,6 +17,9 @@ Environment="DEVID=8086:154c"
 # VFC is just VFA-1
 Environment="VFA=8"
 Environment="VFC=7"
+# MAC format, but leave the last character out for the iteration
+Environment="MACF1=02:aa:bb:cc:d1:e"
+Environment="MACF2=02:aa:bb:cc:d2:e"
 
 # PCIe location (optional if you turn off the unbind scripts!)
 # Please find out what PCI address the VFs get when first running the script, then modify this and uncomment Detach Scripts accordingly
@@ -26,14 +29,14 @@ Environment="VFC=7"
 ExecStart=/usr/bin/bash -c 'echo "$VFA" > /sys/class/net/$PORT0/device/sriov_numvfs'
 ExecStart=/usr/bin/bash -c 'echo "$VFA" > /sys/class/net/$PORT1/device/sriov_numvfs'
 # Set static MACs for VFs
-ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT0" vf "$i" mac 02:aa:bb:cc:d1:e$i; done'
-ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT1" vf "$i" mac 02:aa:bb:cc:d2:e$i; done'
+ExecStart=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do ip link set "$PORT0" vf "$i" mac $MACF1$i; done'
+ExecStart=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do ip link set "$PORT1" vf "$i" mac $MACF2$i; done'
 # Set Trust Mode
-ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT0" vf "$i" trust on; done'
-ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT1" vf "$i" trust on; done'
+ExecStart=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do ip link set "$PORT0" vf "$i" trust on; done'
+ExecStart=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do ip link set "$PORT1" vf "$i" trust on; done'
 # Detach VFs from host
-#ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do echo 0000:05:10.$i > /sys/bus/pci/devices/$P0ADDR.$i/driver/unbind; done'
-#ExecStart=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do echo 0000:05:11.$i > /sys/bus/pci/devices/$P1ADDR.$i/driver/unbind; done'
+#ExecStart=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do echo $P0ADDR.$i > /sys/bus/pci/devices/$P0ADDR.$i/driver/unbind; done'
+#ExecStart=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do echo $P1ADDR.$i > /sys/bus/pci/devices/$P1ADDR.$i/driver/unbind; done'
 # List new VFs
 ExecStart=/usr/bin/lspci -D -d $DEVID
 # Destroy VFs
@@ -45,14 +48,14 @@ ExecStop=/usr/bin/bash -c 'echo 0 > /sys/class/net/$PORT1/device/sriov_numvfs'
 ExecReload=/usr/bin/bash -c 'echo "$VFA" > /sys/class/net/$PORT0/device/sriov_numvfs'
 ExecReload=/usr/bin/bash -c 'echo "$VFA" > /sys/class/net/$PORT1/device/sriov_numvfs'
 # Set static MACs for VFs
-ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT0" vf "$i" mac c2:32:56:8f:0f:e$i; done'
-ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT1" vf "$i" mac c2:32:56:8f:1f:e$i; done'
+ExecReload=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do ip link set "$PORT0" vf "$i" mac $MACF1$i; done'
+ExecReload=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do ip link set "$PORT1" vf "$i" mac $MACF2$i; done'
 # Set Trust Mode
-ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT0" vf "$i" trust on; done'
-ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do ip link set "$PORT1" vf "$i" trust on; done'
+ExecReload=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do ip link set "$PORT0" vf "$i" trust on; done'
+ExecReload=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do ip link set "$PORT1" vf "$i" trust on; done'
 # Detach VFs from host
-#ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do echo 0000:05:10.$i > /sys/bus/pci/devices/$P0ADDR.$i/driver/unbind; done'
-#ExecReload=/usr/bin/bash -c 'for ((i=0; i<=VFC; i++)); do echo 0000:05:11.$i > /sys/bus/pci/devices/$P1ADDR.$i/driver/unbind; done'
+#ExecReload=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do echo $P0ADDR.$i > /sys/bus/pci/devices/$P0ADDR.$i/driver/unbind; done'
+#ExecReload=/usr/bin/bash -c 'for ((i=0; i<=$VFC; i++)); do echo $P1ADDR.$i > /sys/bus/pci/devices/$P1ADDR.$i/driver/unbind; done'
 # List new VFs
 ExecReload=/usr/bin/lspci -D -d $DEVID
 
