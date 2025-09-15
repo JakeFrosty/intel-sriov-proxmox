@@ -11,7 +11,7 @@
 - Spawn VFs on boot using `/sys/class/net/{devicename}/device/sriov_numvfs`
 - Set static MAC addresses for each VFs
 - Set trust mode on all VFs
-- Detach VFs from the host (not necessary for everyone) (see line 19-20, 33-34)
+- (Optional) Detach VFs from the host
 - Destroy VFs on stop by setting `/sys/class/net/{devicename}/device/sriov_numvfs` to 0
 - Start the script  `require` and `after` `network.target` and before `pve-firewall.service`
 
@@ -20,7 +20,7 @@ Make sure you have drivers and kernel modules, they should come with PVE by defa
 - Intel EN82599 chipsets = `ixgbe` and `ixgbevf`
 - Intel X710 family =  `i40e` and `iavf`
 1. First, make sure the path `/sys/class/net/{devicename}/device/sriov_numvfs` is valid/exists
-2. Use your favorite text editor and create this file `/etc/systemd/system/sriov_vfs.service`, copy the contents in there
+2. Use your favorite text editor and create this file `/etc/systemd/system/sriov_vfs.service`, copy the contents in [here](<https://github.com/JakeFrosty/intel-sriov-proxmox/blob/main/etc/systemd/system/sriov_vfs.service>)
 3. Replace values in the service according to your needs
 4. Enable and start the service `systemctl daemon-reload && systemctl enable --now`
 5. check the status with `systemctl status sriov_vfs.service`, `lspci -d 8086:*` or `ip link list`
