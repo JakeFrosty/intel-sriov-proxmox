@@ -21,9 +21,7 @@ Make sure you have drivers and kernel modules, they should come with PVE by defa
 - Intel X710 family =  `i40e` and `iavf`
 1. First, make sure the path `/sys/class/net/{devicename}/device/sriov_numvfs` is valid/exists
 2. Use your favorite text editor and create this file `/etc/systemd/system/sriov_vfs.service`, copy the contents in there
-3. Replace values in the for loops count which indicates how many VFs to iterate to starting from index 0
-4. Replace the value `echo 8 > /sys/class/net/sfp0/device/sriov_numvfs` with the amount of VFs you want to use in the entire script
-5. Replace `8086:154c` with your specific device, `8086:10ed` for EN82599 VFs, `8086:1572` for X710 VFs
-6. Enable and start the service `systemctl daemon-reload && systemctl enable --now`
-7. check the status with `systemctl status sriov_vfs.service`, `lspci -d 8086:*` or `ip link list`
+3. Replace values in the service according to your needs
+4. Enable and start the service `systemctl daemon-reload && systemctl enable --now`
+5. check the status with `systemctl status sriov_vfs.service`, `lspci -d 8086:*` or `ip link list`
 
